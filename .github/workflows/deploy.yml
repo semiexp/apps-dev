@@ -42,10 +42,6 @@ jobs:
         git clone https://github.com/semiexp/scrabble-solver.git
         mkdir -p ${{ runner.temp }}/scrabble-solver/src/solver
 
-        # TODO: use release dir
-        cp target/wasm32-unknown-emscripten/debug/deps/scrabble.js ${{ runner.temp }}/scrabble-solver/src/solver
-        cp target/wasm32-unknown-emscripten/debug/deps/scrabble.wasm ${{ runner.temp }}/scrabble-solver/src/solver
-
         # Build scrabble-solver
         cd ${{ runner.temp }}/scrabble-solver
         npm install
@@ -55,6 +51,7 @@ jobs:
           ${{ runner.temp }}/scrabble-solver \
           ${{ runner.temp }}/cspuz_core
 
+        npm run build-solver
         npm run build
 
         # Copy build outputs

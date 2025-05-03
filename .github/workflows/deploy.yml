@@ -34,6 +34,31 @@ jobs:
         # Build cspuz_core
         cd ${{ runner.temp }}/cspuz_core
         cargo build --target wasm32-unknown-emscripten --no-default-features  # TODO: use --release
+    - name: Build scrabble-solver
+      run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Clone scrabble-solver
+        git clone https://github.com/semiexp/scrabble-solver.git
+        mkdir -p ${{ runner.temp }}/scrabble-solver/src/solver
+
+        # TODO: use release dir
+        cp target/wasm32-unknown-emscripten/debug/deps/scrabble.js ${{ runner.temp }}/scrabble-solver/src/solver
+        cp target/wasm32-unknown-emscripten/debug/deps/scrabble.wasm ${{ runner.temp }}/scrabble-solver/src/solver
+
+        # Build scrabble-solver
+        cd ${{ runner.temp }}/scrabble-solver
+        npm install
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/scrabble-solver/public/licenses.txt \
+          ${{ runner.temp }}/scrabble-solver \
+          ${{ runner.temp }}/cspuz_core
+
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/scrabble-solver/dist/ ${{ runner.temp }}/build-outputs/scrabble-solver
     - name: Build cspuz-solver2
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh

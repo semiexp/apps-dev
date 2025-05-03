@@ -38,8 +38,9 @@ jobs:
         cd ${{ runner.temp }}/cspuz_core
         cargo build --target wasm32-unknown-emscripten --no-default-features  # TODO: use --release
 
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
+        # TODO: use release dir
+        cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/cspuz-solver2/public/license.txt \

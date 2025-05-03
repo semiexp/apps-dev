@@ -42,14 +42,15 @@ jobs:
         cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
         cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
 
+        # Build cspuz-solver2
+        cd ${{ runner.temp }}/cspuz-solver2
+        npm install
+
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/cspuz-solver2/public/license.txt \
           ${{ runner.temp }}/cspuz-solver2 \
           ${{ runner.temp }}/cspuz_core
 
-        # Build cspuz-solver2
-        cd ${{ runner.temp }}/cspuz-solver2
-        npm install
         npm run build
 
         # Copy build outputs

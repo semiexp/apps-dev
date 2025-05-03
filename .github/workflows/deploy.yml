@@ -68,6 +68,7 @@ jobs:
         mkdir -p ${{ runner.temp }}/cspuz-solver2/src/solver
 
         # TODO: use release dir
+        cd ${{ runner.temp }}/cspuz_core
         cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
         cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
 

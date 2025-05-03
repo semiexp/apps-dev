@@ -39,7 +39,7 @@ jobs:
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
 
         # Clone scrabble-solver
-        git clone https://github.com/semiexp/scrabble-solver.git
+        git clone https://github.com/semiexp/scrabble-solver.git ${{ runner.temp }}/scrabble-solver
         mkdir -p ${{ runner.temp }}/scrabble-solver/src/solver
 
         # Build scrabble-solver

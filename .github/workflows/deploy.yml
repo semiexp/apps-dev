@@ -1,0 +1,71 @@
+name: Build apps
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Prepare destination directory
+      run: |
+        cd ${{ runner.temp }}
+        mkdir -p build-outputs
+    - name: Setup build environment
+      run: |
+        # Update Rust
+        rustup update
+
+        # Setup Emscripten environment
+        rustup target add wasm32-unknown-emscripten
+        cd ${{ runner.temp }}
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+    - name: Clone common repositories
+      run: |
+        git clone https://github.com/semiexp/cspuz_core.git ${{ runner.temp }}/cspuz_core
+        git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
+    - name: Build cspuz-solver2
+      run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Clone cspuz-solver2
+        git clone https://github.com/semiexp/cspuz-solver2.git ${{ runner.temp }}/cspuz-solver2
+        mkdir -p ${{ runner.temp }}/cspuz-solver2/src/solver
+
+        cd ${{ runner.temp }}/cspuz_core
+        cargo build --target wasm32-unknown-emscripten --no-default-features  # TODO: use --release
+
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/cspuz-solver2/public/license.txt \
+          ${{ runner.temp }}/cspuz-solver2 \
+          ${{ runner.temp }}/cspuz_core
+
+        # Build cspuz-solver2
+        cd ${{ runner.temp }}/cspuz-solver2
+        npm install
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/cspuz-solver2/dist/ ${{ runner.temp }}/build-outputs/cspuz-solver2
+    - name: Upload
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ${{ runner.temp }}/build-outputs
+  deploy:
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/deploy-pages@v4
+      id: deployment

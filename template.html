@@ -1,0 +1,30 @@
+<!DOCTYPE html> 
+<html lang="ja">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="/css/default.css" type="text/css">
+</head>
+<body>
+    <div id="header">
+        <div id="title"><a href="/index.html">semiexp.net</a></div>
+        <div id="topmenu">
+            <div id="menu_entry"><a href="/games/index.html">Apps</a></div>
+            <div id="menu_entry"><a href="/blog/index.html">Blog</a></div>
+            <div id="menu_entry"><a href="/docs/index.html">Documents</a></div>
+        </div>
+        <div id="menu_lang">
+            [en/ja]
+        </div>
+    </div>
+
+    <div id="wrapper">
+        <div id="content">
+            <h1>${title}</h1>
+
+            <div id="root"></div>
+            <script type="module" src="/src/main.tsx"></script>
+        </div>
+    </div>
+</body>
+</html> 

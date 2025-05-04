@@ -29,6 +29,8 @@ jobs:
         git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
     - name: Build Sudoku Editor Plus
       run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
         # Clone sudoku-editor-plus
         git clone https://github.com/semiexp/sudoku-editor.git ${{ runner.temp }}/sudoku-editor
 

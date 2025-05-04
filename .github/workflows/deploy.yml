@@ -27,6 +27,30 @@ jobs:
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
         git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
+    - name: Build Sudoku Editor Plus
+      run: |
+        # Clone sudoku-editor-plus
+        git clone https://github.com/semiexp/sudoku-editor.git ${{ runner.temp }}/sudoku-editor
+
+        # Prepare index.html
+        python3 ${{ github.workspace }}/prepare_index_html.py \
+          --title "Sudoku Editor Plus" \
+          --out ${{ runner.temp }}/sudoku-editor/index.html
+
+        # Build sudoku-editor
+        cd ${{ runner.temp }}/sudoku-editor
+        npm install
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/sudoku-editor/public/licenses.txt \
+          ${{ runner.temp }}/sudoku-editor \
+          ${{ runner.temp }}/cspuz_core
+
+        npm run build-solver
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/sudoku-editor/dist/ ${{ runner.temp }}/build-outputs/sudoku-editor
     - name: Build scrabble-solver
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh

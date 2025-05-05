@@ -86,7 +86,7 @@ jobs:
 
         # Build cspuz_core
         cd ${{ runner.temp }}/cspuz_core
-        cargo build --target wasm32-unknown-emscripten --no-default-features  # TODO: use --release
+        cargo build --target wasm32-unknown-emscripten --no-default-features --release
 
         # Clone cspuz-solver2
         git clone https://github.com/semiexp/cspuz-solver2.git ${{ runner.temp }}/cspuz-solver2
@@ -99,8 +99,8 @@ jobs:
 
         # TODO: use release dir
         cd ${{ runner.temp }}/cspuz_core
-        cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
-        cp target/wasm32-unknown-emscripten/debug/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
 
         # Build cspuz-solver2
         cd ${{ runner.temp }}/cspuz-solver2

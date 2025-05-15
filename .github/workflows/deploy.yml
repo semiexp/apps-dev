@@ -44,6 +44,11 @@ jobs:
         cd ${{ runner.temp }}/polymate2
         wasm-pack build --target web --out-dir ${{ runner.temp }}/polymate2/pkg
 
+        # Prepare index.html
+        python3 ${{ github.workspace }}/prepare_index_html.py \
+          --title "Polymate" \
+          --out ${{ runner.temp }}/polymate-ui/index.html
+
         # Build polymate-ui
         cd ${{ runner.temp }}/polymate-ui
         npm install

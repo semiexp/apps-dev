@@ -97,8 +97,8 @@ jobs:
           --title "cspuz-solver2" \
           --out ${{ runner.temp }}/cspuz-solver2/index.html
 
-        # TODO: use release dir
         cd ${{ runner.temp }}/cspuz_core
+        cargo run -p cspuz_solver_backend --bin puzzle_list > ${{ runner.temp }}/cspuz-solver2/src/puzzles.json
         cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
         cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
 

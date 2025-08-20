@@ -34,10 +34,16 @@ jobs:
         # Clone sudoku-editor-plus
         git clone https://github.com/semiexp/sudoku-editor.git ${{ runner.temp }}/sudoku-editor
 
+        export REVISION_SUDOKU_EDITOR=`cd ${{ runner.temp }}/sudoku-editor && git rev-parse HEAD`
+        export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
+
         # Prepare index.html
         python3 ${{ github.workspace }}/prepare_index_html.py \
           --title "Sudoku Editor Plus" \
-          --out ${{ runner.temp }}/sudoku-editor/index.html
+          --out ${{ runner.temp }}/sudoku-editor/index.html \
+          --meta \
+            revision-sudoku-editor $REVISION_SUDOKU_EDITOR \
+            revision-cspuz-core $REVISION_CSPUZ_CORE
 
         # Build sudoku-editor
         cd ${{ runner.temp }}/sudoku-editor
@@ -92,10 +98,16 @@ jobs:
         git clone https://github.com/semiexp/cspuz-solver2.git ${{ runner.temp }}/cspuz-solver2
         mkdir -p ${{ runner.temp }}/cspuz-solver2/src/solver
 
+        export REVISION_CSPUZ_SOLVER2=`cd ${{ runner.temp }}/cspuz-solver2 && git rev-parse HEAD`
+        export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
+
         # Prepare index.html
         python3 ${{ github.workspace }}/prepare_index_html.py \
           --title "cspuz-solver2" \
-          --out ${{ runner.temp }}/cspuz-solver2/index.html
+          --out ${{ runner.temp }}/cspuz-solver2/index.html \
+          --meta \
+            revision-cspuz-solver2 $REVISION_CSPUZ_SOLVER2 \
+            revision-cspuz-core $REVISION_CSPUZ_CORE
 
         cd ${{ runner.temp }}/cspuz_core
         cargo run -p cspuz_solver_backend --bin puzzle_list > ${{ runner.temp }}/cspuz-solver2/src/puzzles.json

@@ -23,10 +23,45 @@ jobs:
         cd emsdk
         ./emsdk install latest
         ./emsdk activate latest
+
+        # Install wasm-pack
+        cargo install wasm-pack
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
         git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
+    - name: Build Polymate
+      run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Clone polymate2
+        git clone https://github.com/semiexp/polymate2.git ${{ runner.temp }}/polymate2
+
+        # Clone polymate-ui
+        git clone https://github.com/semiexp/polymate-ui.git ${{ runner.temp }}/polymate-ui
+
+        # Build solver
+        cd ${{ runner.temp }}/polymate2
+        wasm-pack build --target web --out-dir ${{ runner.temp }}/polymate-ui/solver-pkg
+
+        # Prepare index.html
+        python3 ${{ github.workspace }}/prepare_index_html.py \
+          --title "Polymate" \
+          --out ${{ runner.temp }}/polymate-ui/index.html
+
+        # Build polymate-ui
+        cd ${{ runner.temp }}/polymate-ui
+        npm install
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/polymate-ui/public/licenses.txt \
+          ${{ runner.temp }}/polymate-ui \
+          ${{ runner.temp }}/polymate2
+
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/polymate-ui/dist/ ${{ runner.temp }}/build-outputs/polymate2
     - name: Build Sudoku Editor Plus
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
@@ -127,6 +162,9 @@ jobs:
 
         # Copy build outputs
         cp -r ${{ runner.temp }}/cspuz-solver2/dist/ ${{ runner.temp }}/build-outputs/cspuz-solver2
+    - name: List production files
+      run: |
+        file ${{ runner.temp }}/build-outputs
     - name: Upload
       uses: actions/upload-pages-artifact@v3
       with:

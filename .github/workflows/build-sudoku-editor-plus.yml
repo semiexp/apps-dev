@@ -9,13 +9,15 @@ jobs:
       contents: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        path: main
     - uses: actions/checkout@v4
       with:
         ref: build
-        path: ${{ runner.temp }}/repo-build
+        path: repo-build
     - name: Set up output directory
       run: |
-        cd ${{ runner.temp }}/repo-build
+        cd ${{ github.workspace }}/repo-build
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         mkdir -p build-outputs
@@ -48,7 +50,7 @@ jobs:
         export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
 
         # Prepare index.html
-        python3 ${{ github.workspace }}/prepare_index_html.py \
+        python3 ${{ github.workspace }}/main/prepare_index_html.py \
           --title "Sudoku Editor Plus" \
           --out ${{ runner.temp }}/sudoku-editor/index.html \
           --meta \
@@ -68,10 +70,10 @@ jobs:
         npm run build
 
         # Copy build outputs
-        cp -r ${{ runner.temp }}/sudoku-editor/dist/ ${{ runner.temp }}/repo-build/build-outputs/sudoku-editor
+        cp -r ${{ runner.temp }}/sudoku-editor/dist/ ${{ github.workspace }}/repo-build/build-outputs/sudoku-editor
     - name: Commit
       run: |
-        cd ${{ runner.temp }}/repo-build
+        cd ${{ github.workspace }}/repo-build
         git add .
         git commit -m "Update Sudoku Editor Plus"
         git push origin build

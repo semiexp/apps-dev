@@ -1,0 +1,88 @@
+name: Build cspuz-solver2
+
+on: workflow_dispatch
+
+jobs:
+  build-cspuz-solver2:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: main
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Set up output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/cspuz-solver2
+        git add .
+    - name: Setup build environment
+      run: |
+        # Update Rust
+        rustup update
+
+        # Setup Emscripten environment
+        rustup target add wasm32-unknown-emscripten
+        cd ${{ runner.temp }}
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+    - name: Clone common repositories
+      run: |
+        git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
+        git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
+    - name: Build Sudoku Editor Plus
+      run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Build cspuz_core
+        cd ${{ runner.temp }}/cspuz_core
+        cargo build --target wasm32-unknown-emscripten --no-default-features --release
+
+        # Clone cspuz-solver2
+        git clone https://github.com/semiexp/cspuz-solver2.git ${{ runner.temp }}/cspuz-solver2
+        mkdir -p ${{ runner.temp }}/cspuz-solver2/src/solver
+
+        export REVISION_CSPUZ_SOLVER2=`cd ${{ runner.temp }}/cspuz-solver2 && git rev-parse HEAD`
+        export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
+
+        # Prepare index.html
+        python3 ${{ github.workspace }}/main/prepare_index_html.py \
+          --title "cspuz-solver2" \
+          --out ${{ runner.temp }}/cspuz-solver2/index.html \
+          --meta \
+            revision-cspuz-solver2 $REVISION_CSPUZ_SOLVER2 \
+            revision-cspuz-core $REVISION_CSPUZ_CORE
+
+        cd ${{ runner.temp }}/cspuz_core
+        cargo run -p cspuz_solver_backend --bin puzzle_list > ${{ runner.temp }}/cspuz-solver2/src/puzzles.json
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/cspuz-solver2/src/solver
+
+        # Build cspuz-solver2
+        cd ${{ runner.temp }}/cspuz-solver2
+        npm install
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/cspuz-solver2/public/license.txt \
+          ${{ runner.temp }}/cspuz-solver2 \
+          ${{ runner.temp }}/cspuz_core
+
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/cspuz-solver2/dist/ ${{ github.workspace }}/repo-build/build-outputs/cspuz-solver2
+    - name: Commit
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git add .
+        git commit -m "Update cspuz-solver2"
+        git push origin build

@@ -11,8 +11,8 @@ jobs:
         ref: build
     - name: Copy files
       run: |
-        cp -r ${{ github.workspace }}/build-outputs/* ${{ runner.temp }}/build-outputs
         mkdir -p ${{ runner.temp }}/build-outputs
+        cp -r ${{ github.workspace }}/build-outputs/* ${{ runner.temp }}/build-outputs
     - name: Upload
       uses: actions/upload-pages-artifact@v3
       with:

@@ -1,0 +1,74 @@
+name: Build Scrabble Solver
+
+on: workflow_dispatch
+
+jobs:
+  build-scrabble-solver:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: main
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Set up output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/scrabble-solver
+        git add .
+    - name: Setup build environment
+      run: |
+        # Update Rust
+        rustup update
+
+        # Setup Emscripten environment
+        rustup target add wasm32-unknown-emscripten
+        cd ${{ runner.temp }}
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+    - name: Clone common repositories
+      run: |
+        git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
+        git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
+    - name: Build Sudoku Editor Plus
+      run: |
+        source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Clone scrabble-solver
+        git clone https://github.com/semiexp/scrabble-solver.git ${{ runner.temp }}/scrabble-solver
+        mkdir -p ${{ runner.temp }}/scrabble-solver/src/solver
+
+        # Prepare index.html
+        python3 ${{ github.workspace }}/main/prepare_index_html.py \
+          --title "Scrabble Solver" \
+          --out ${{ runner.temp }}/scrabble-solver/index.html
+
+        # Build scrabble-solver
+        cd ${{ runner.temp }}/scrabble-solver
+        npm install
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/scrabble-solver/public/licenses.txt \
+          ${{ runner.temp }}/scrabble-solver \
+          ${{ runner.temp }}/cspuz_core
+
+        npm run build-solver
+        npm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/scrabble-solver/dist/ ${{ github.workspace }}/repo-build/build-outputs/scrabble-solver
+    - name: Commit
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git add .
+        git commit -m "Update Scrabble Solver"
+        git push origin build

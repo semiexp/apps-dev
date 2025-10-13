@@ -28,8 +28,10 @@ jobs:
         # Install pnpm
         npm install -g pnpm@10.18.2
 
-        # Update Rust
+        # Fix Rust version to 1.89.0
         rustup update
+        rustup install 1.89.0
+        rustup default 1.89.0
 
         # Setup Emscripten environment
         rustup target add wasm32-unknown-emscripten

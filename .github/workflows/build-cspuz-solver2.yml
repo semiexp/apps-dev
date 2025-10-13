@@ -28,8 +28,10 @@ jobs:
         # Install pnpm
         npm install -g pnpm@10.18.2
 
-        # Update Rust
+        # Fix Rust version to 1.89.0
         rustup update
+        rustup install 1.89.0
+        rustup default 1.89.0
 
         # Setup Emscripten environment
         rustup target add wasm32-unknown-emscripten
@@ -42,7 +44,7 @@ jobs:
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
         git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
-    - name: Build Sudoku Editor Plus
+    - name: Build cspuz-solver2
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
 

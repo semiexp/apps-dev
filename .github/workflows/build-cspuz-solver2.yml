@@ -25,6 +25,9 @@ jobs:
         git add .
     - name: Setup build environment
       run: |
+        # Install pnpm
+        npm install -g pnpm@10.18.2
+
         # Update Rust
         rustup update
 
@@ -69,14 +72,14 @@ jobs:
 
         # Build cspuz-solver2
         cd ${{ runner.temp }}/cspuz-solver2
-        npm install
+        pnpm install
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/cspuz-solver2/public/license.txt \
           ${{ runner.temp }}/cspuz-solver2 \
           ${{ runner.temp }}/cspuz_core
 
-        npm run build
+        pnpm run build
 
         # Copy build outputs
         cp -r ${{ runner.temp }}/cspuz-solver2/dist/ ${{ github.workspace }}/repo-build/build-outputs/cspuz-solver2

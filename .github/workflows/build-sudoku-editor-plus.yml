@@ -25,6 +25,9 @@ jobs:
         git add .
     - name: Setup build environment
       run: |
+        # Install pnpm
+        npm install -g pnpm@10.18.2
+
         # Update Rust
         rustup update
 
@@ -59,15 +62,15 @@ jobs:
 
         # Build sudoku-editor
         cd ${{ runner.temp }}/sudoku-editor
-        npm install
+        pnpm install
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/sudoku-editor/public/licenses.txt \
           ${{ runner.temp }}/sudoku-editor \
           ${{ runner.temp }}/cspuz_core
 
-        npm run build-solver
-        npm run build
+        pnpm run build-solver
+        pnpm run build
 
         # Copy build outputs
         cp -r ${{ runner.temp }}/sudoku-editor/dist/ ${{ github.workspace }}/repo-build/build-outputs/sudoku-editor

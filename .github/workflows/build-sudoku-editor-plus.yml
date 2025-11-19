@@ -48,34 +48,34 @@ jobs:
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
 
-        # Clone sudoku-editor-plus
-        git clone https://github.com/semiexp/sudoku-editor.git ${{ runner.temp }}/sudoku-editor
+        # Clone puzzle-webapp
+        git clone https://github.com/semiexp/puzzle-webapp.git ${{ runner.temp }}/puzzle-webapp
 
-        export REVISION_SUDOKU_EDITOR=`cd ${{ runner.temp }}/sudoku-editor && git rev-parse HEAD`
+        export REVISION_SUDOKU_EDITOR=`cd ${{ runner.temp }}/puzzle-webapp && git rev-parse HEAD`
         export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
 
         # Prepare index.html
         python3 ${{ github.workspace }}/main/prepare_index_html.py \
           --title "Sudoku Editor Plus" \
-          --out ${{ runner.temp }}/sudoku-editor/index.html \
+          --out ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/index.html \
           --meta \
             revision-sudoku-editor $REVISION_SUDOKU_EDITOR \
             revision-cspuz-core $REVISION_CSPUZ_CORE
 
         # Build sudoku-editor
-        cd ${{ runner.temp }}/sudoku-editor
-        pnpm install
+        cd ${{ runner.temp }}/puzzle-webapp
+        pnpm --filter sudoku-editor install
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
-          -o ${{ runner.temp }}/sudoku-editor/public/licenses.txt \
-          ${{ runner.temp }}/sudoku-editor \
+          -o ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/public/licenses.txt \
+          ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor \
           ${{ runner.temp }}/cspuz_core
 
-        pnpm run build-solver
-        pnpm run build
+        pnpm --filter sudoku-editor run build-solver
+        pnpm --filter sudoku-editor run build
 
         # Copy build outputs
-        cp -r ${{ runner.temp }}/sudoku-editor/dist/ ${{ github.workspace }}/repo-build/build-outputs/sudoku-editor
+        cp -r ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/dist/ ${{ github.workspace }}/repo-build/build-outputs/sudoku-editor
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build

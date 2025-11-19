@@ -74,7 +74,8 @@ jobs:
 
         # Build cspuz-solver2
         cd ${{ runner.temp }}/puzzle-webapp
-        pnpm --filter cspuz-solver2 install
+        pnpm --filter puzzle-board install --frozen-lockfile
+        pnpm --filter cspuz-solver2 install --frozen-lockfile
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/public/license.txt \

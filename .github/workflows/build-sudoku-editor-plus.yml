@@ -64,7 +64,8 @@ jobs:
 
         # Build sudoku-editor
         cd ${{ runner.temp }}/puzzle-webapp
-        pnpm --filter sudoku-editor install
+        pnpm --filter puzzle-board install --frozen-lockfile
+        pnpm --filter sudoku-editor install --frozen-lockfile
 
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/public/licenses.txt \

@@ -30915,8 +30915,8 @@ false`;
                 i && v.jsxs(v.Fragment, {
                   children: [
                     v.jsx("a", {
-                      href: "https://github.com/semiexp/sudoku-editor",
-                      children: "sudoku-editor"
+                      href: "https://github.com/semiexp/puzzle-webapp",
+                      children: "puzzle-webapp"
                     }),
                     ": ",
                     i,

@@ -83,8 +83,8 @@ jobs:
         cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/cspuz
 
         cd ${{ runner.temp }}/numlin
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
+        cp target/wasm32-unknown-emscripten/release/deps/numlin.js ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
+        cp target/wasm32-unknown-emscripten/release/deps/numlin.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
 
         # Build cspuz-solver2
         cd ${{ runner.temp }}/puzzle-webapp

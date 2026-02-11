@@ -52,12 +52,21 @@ jobs:
         cd ${{ runner.temp }}/cspuz_core
         cargo build --target wasm32-unknown-emscripten --no-default-features --release
 
+        # Build numlin
+        cd -
+        git clone https://github.com/semiexp/numlin.git ${{ runner.temp }}/numlin
+        cd ${{ runner.temp }}/numlin
+        cargo build --target wasm32-unknown-emscripten --no-default-features --release
+
         # Clone puzzle-webapp
         git clone https://github.com/semiexp/puzzle-webapp.git ${{ runner.temp }}/puzzle-webapp
         mkdir -p ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver
+        mkdir -p ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/cspuz
+        mkdir -p ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
 
         export REVISION_CSPUZ_SOLVER2=`cd ${{ runner.temp }}/puzzle-webapp && git rev-parse HEAD`
         export REVISION_CSPUZ_CORE=`cd ${{ runner.temp }}/cspuz_core && git rev-parse HEAD`
+        export REVISION_NUMLIN=`cd ${{ runner.temp }}/numlin && git rev-parse HEAD`
 
         # Prepare index.html
         python3 ${{ github.workspace }}/main/prepare_index_html.py \
@@ -65,12 +74,17 @@ jobs:
           --out ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/index.html \
           --meta \
             revision-cspuz-solver2 $REVISION_CSPUZ_SOLVER2 \
-            revision-cspuz-core $REVISION_CSPUZ_CORE
+            revision-cspuz-core $REVISION_CSPUZ_CORE \
+            revision-numlin $REVISION_NUMLIN
 
         cd ${{ runner.temp }}/cspuz_core
         cargo run -p cspuz_solver_backend --bin puzzle_list > ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/puzzles.json
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver
-        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.js ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/cspuz
+        cp target/wasm32-unknown-emscripten/release/deps/cspuz_solver_backend.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/cspuz
+
+        cd ${{ runner.temp }}/numlin
+        cp target/wasm32-unknown-emscripten/release/deps/numlin.js ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
+        cp target/wasm32-unknown-emscripten/release/deps/numlin.wasm ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/src/solver/numlin
 
         # Build cspuz-solver2
         cd ${{ runner.temp }}/puzzle-webapp
@@ -80,7 +94,8 @@ jobs:
         python3 ${{ runner.temp }}/third-party-licenses/collect.py \
           -o ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/public/license.txt \
           ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2 \
-          ${{ runner.temp }}/cspuz_core
+          ${{ runner.temp }}/cspuz_core \
+          ${{ runner.temp }}/numlin
 
         pnpm --filter cspuz-solver2 run build
 

@@ -28,11 +28,6 @@ jobs:
         # Install pnpm
         npm install -g pnpm@10.18.2
 
-        # Fix Rust version to 1.89.0
-        rustup update
-        rustup install 1.89.0
-        rustup default 1.89.0
-
         # Install wasm-pack
         cargo install wasm-pack
     - name: Clone common repositories

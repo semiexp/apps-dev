@@ -28,16 +28,12 @@ jobs:
         # Install pnpm
         npm install -g pnpm@10.18.2
 
-        # Fix Rust version to 1.89.0
-        rustup update
-        rustup install 1.89.0
-        rustup default 1.89.0
-
         # Install wasm-pack
         cargo install wasm-pack
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/polymate-ui.git --recursive ${{ runner.temp }}/polymate-ui
+        git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
     - name: Build polymate
       run: |
         cd ${{ runner.temp }}/polymate-ui
@@ -53,6 +49,7 @@ jobs:
           ${{ runner.temp }}/polymate-ui \
           ${{ runner.temp }}/polymate-ui/polymate2 \
 
+        pnpm run build-solver
         pnpm run build
 
         # Copy build outputs

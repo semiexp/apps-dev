@@ -33,6 +33,7 @@ jobs:
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/polymate-ui.git --recursive ${{ runner.temp }}/polymate-ui
+        git clone https://github.com/semiexp/third-party-licenses.git ${{ runner.temp }}/third-party-licenses
     - name: Build polymate
       run: |
         cd ${{ runner.temp }}/polymate-ui

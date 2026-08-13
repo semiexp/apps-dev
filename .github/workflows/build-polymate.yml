@@ -49,6 +49,7 @@ jobs:
           ${{ runner.temp }}/polymate-ui \
           ${{ runner.temp }}/polymate-ui/polymate2 \
 
+        pnpm run build-solver
         pnpm run build
 
         # Copy build outputs

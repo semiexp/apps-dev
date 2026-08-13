@@ -1,0 +1,65 @@
+name: Build polymate
+
+on: workflow_dispatch
+
+jobs:
+  build-polymate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: main
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Set up output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/polymate
+        git add .
+    - name: Setup build environment
+      run: |
+        # Install pnpm
+        npm install -g pnpm@10.18.2
+
+        # Fix Rust version to 1.89.0
+        rustup update
+        rustup install 1.89.0
+        rustup default 1.89.0
+
+        # Install wasm-pack
+        cargo install wasm-pack
+    - name: Clone common repositories
+      run: |
+        git clone https://github.com/semiexp/polymate-ui.git --recursive ${{ runner.temp }}/polymate-ui
+    - name: Build polymate
+      run: |
+        cd ${{ runner.temp }}/polymate-ui
+        pnpm install --frozen-lockfile
+
+        # Prepare index.html
+        python3 ${{ github.workspace }}/main/prepare_index_html.py \
+          --title "Polymate" \
+          --out ${{ runner.temp }}/polymate-ui/index.html
+
+        python3 ${{ runner.temp }}/third-party-licenses/collect.py \
+          -o ${{ runner.temp }}/polymate-ui/public/license.txt \
+          ${{ runner.temp }}/polymate-ui \
+          ${{ runner.temp }}/polymate-ui/polymate2 \
+
+        pnpm run build
+
+        # Copy build outputs
+        cp -r ${{ runner.temp }}/polymate-ui/dist/ ${{ github.workspace }}/repo-build/build-outputs/polymate
+    - name: Commit
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git add .
+        git commit -m "Update polymate"
+        git push origin build

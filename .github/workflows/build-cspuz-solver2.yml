@@ -26,7 +26,7 @@ jobs:
     - name: Setup build environment
       run: |
         # Install pnpm
-        npm install -g pnpm@10.18.2
+        npm install -g pnpm@12.18.0
 
         # Fix Rust version to 1.89.0
         rustup update
@@ -38,8 +38,8 @@ jobs:
         cd ${{ runner.temp }}
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest
-        ./emsdk activate latest
+        ./emsdk install releases-6.0.12-64bit
+        ./emsdk activate releases-6.0.12-64bit
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core

@@ -6,7 +6,7 @@ jobs:
   build-cspuz-solver2:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
@@ -101,6 +101,34 @@ jobs:
 
         # Copy build outputs
         cp -r ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/dist/ ${{ github.workspace }}/repo-build/build-outputs/cspuz-solver2
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: cspuz-solver2
+        path: ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/dist/
+        if-no-files-found: error
+  publish-cspuz-solver2:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Prepare output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/cspuz-solver2
+        git add .
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: cspuz-solver2
+        path: repo-build/build-outputs/cspuz-solver2
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build

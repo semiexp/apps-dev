@@ -38,7 +38,7 @@ jobs:
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
 
         # Print versions for debugging
-        cat "${{ runner.temp }}/.emsdk/.emscripten"
+        cat "${{ runner.temp }}/emsdk/.emscripten"
         node --version
         emcc --version
 

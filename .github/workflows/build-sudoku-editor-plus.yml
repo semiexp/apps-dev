@@ -12,14 +12,6 @@ jobs:
       with:
         path: main
         persist-credentials: false
-    - name: Set up output directory
-      run: |
-        cd ${{ github.workspace }}/repo-build
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        mkdir -p build-outputs
-        rm -rf build-outputs/sudoku-editor
-        git add .
     - name: Setup build environment
       run: |
         # Install pnpm
@@ -98,13 +90,13 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         mkdir -p build-outputs
-        rm -rf build-outputs/sudoku-editor-plus
+        rm -rf build-outputs/sudoku-editor
         git add .
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
         name: sudoku-editor-plus
-        path: repo-build/build-outputs/sudoku-editor-plus
+        path: repo-build/build-outputs/sudoku-editor
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build

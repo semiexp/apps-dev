@@ -12,14 +12,6 @@ jobs:
       with:
         path: main
         persist-credentials: false
-    - name: Set up output directory
-      run: |
-        cd ${{ github.workspace }}/repo-build
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        mkdir -p build-outputs
-        rm -rf build-outputs/scrabble-solver
-        git add .
     - name: Setup build environment
       run: |
         # Install pnpm
@@ -65,9 +57,6 @@ jobs:
 
         pnpm run build-solver
         pnpm run build
-
-        # Copy build outputs
-        cp -r ${{ runner.temp }}/scrabble-solver/dist/ ${{ github.workspace }}/repo-build/build-outputs/scrabble-solver
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:

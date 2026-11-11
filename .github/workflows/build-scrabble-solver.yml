@@ -6,27 +6,16 @@ jobs:
   build-scrabble-solver:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
         path: main
-    - uses: actions/checkout@v4
-      with:
-        ref: build
-        path: repo-build
-    - name: Set up output directory
-      run: |
-        cd ${{ github.workspace }}/repo-build
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        mkdir -p build-outputs
-        rm -rf build-outputs/scrabble-solver
-        git add .
+        persist-credentials: false
     - name: Setup build environment
       run: |
         # Install pnpm
-        npm install -g pnpm@10.18.2
+        npm install -g pnpm@12.18.0
 
         # Fix Rust version to 1.89.0
         rustup update
@@ -38,8 +27,8 @@ jobs:
         cd ${{ runner.temp }}
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest
-        ./emsdk activate latest
+        ./emsdk install releases-6.0.12-64bit
+        ./emsdk activate releases-6.0.12-64bit
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
@@ -68,12 +57,38 @@ jobs:
 
         pnpm run build-solver
         pnpm run build
-
-        # Copy build outputs
-        cp -r ${{ runner.temp }}/scrabble-solver/dist/ ${{ github.workspace }}/repo-build/build-outputs/scrabble-solver
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scrabble-solver
+        path: ${{ runner.temp }}/scrabble-solver/dist/
+        if-no-files-found: error
+  publish-scrabble-solver:
+    needs: build-scrabble-solver
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Prepare output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/scrabble-solver
+        git add .
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: scrabble-solver
+        path: repo-build/build-outputs/scrabble-solver
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build
         git add .
-        git commit -m "Update Scrabble Solver"
+        git commit -m "Update scrabble-solver"
         git push origin build

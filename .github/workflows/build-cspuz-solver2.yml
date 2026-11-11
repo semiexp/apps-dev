@@ -6,27 +6,16 @@ jobs:
   build-cspuz-solver2:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
         path: main
-    - uses: actions/checkout@v4
-      with:
-        ref: build
-        path: repo-build
-    - name: Set up output directory
-      run: |
-        cd ${{ github.workspace }}/repo-build
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        mkdir -p build-outputs
-        rm -rf build-outputs/cspuz-solver2
-        git add .
+        persist-credentials: false
     - name: Setup build environment
       run: |
         # Install pnpm
-        npm install -g pnpm@10.18.2
+        npm install -g pnpm@12.18.0
 
         # Fix Rust version to 1.89.0
         rustup update
@@ -38,8 +27,8 @@ jobs:
         cd ${{ runner.temp }}
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest
-        ./emsdk activate latest
+        ./emsdk install releases-6.0.12-64bit
+        ./emsdk activate releases-6.0.12-64bit
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
@@ -47,6 +36,11 @@ jobs:
     - name: Build cspuz-solver2
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Print versions for debugging
+        cat "${{ runner.temp }}/emsdk/.emscripten"
+        node --version
+        emcc --version
 
         # Build cspuz_core
         cd ${{ runner.temp }}/cspuz_core
@@ -98,9 +92,35 @@ jobs:
           ${{ runner.temp }}/numlin
 
         pnpm --filter cspuz-solver2 run build
-
-        # Copy build outputs
-        cp -r ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/dist/ ${{ github.workspace }}/repo-build/build-outputs/cspuz-solver2
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: cspuz-solver2
+        path: ${{ runner.temp }}/puzzle-webapp/packages/cspuz-solver2/dist/
+        if-no-files-found: error
+  publish-cspuz-solver2:
+    needs: build-cspuz-solver2
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Prepare output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/cspuz-solver2
+        git add .
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: cspuz-solver2
+        path: repo-build/build-outputs/cspuz-solver2
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build

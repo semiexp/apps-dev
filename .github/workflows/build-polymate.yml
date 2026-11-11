@@ -6,27 +6,16 @@ jobs:
   build-polymate:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
         path: main
-    - uses: actions/checkout@v4
-      with:
-        ref: build
-        path: repo-build
-    - name: Set up output directory
-      run: |
-        cd ${{ github.workspace }}/repo-build
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        mkdir -p build-outputs
-        rm -rf build-outputs/polymate
-        git add .
+        persist-credentials: false
     - name: Setup build environment
       run: |
         # Install pnpm
-        npm install -g pnpm@10.18.2
+        npm install -g pnpm@12.18.0
 
         # Install wasm-pack
         cargo install wasm-pack
@@ -51,9 +40,35 @@ jobs:
 
         pnpm run build-solver
         pnpm run build
-
-        # Copy build outputs
-        cp -r ${{ runner.temp }}/polymate-ui/dist/ ${{ github.workspace }}/repo-build/build-outputs/polymate
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: polymate
+        path: ${{ runner.temp }}/polymate-ui/dist/
+        if-no-files-found: error
+  publish-polymate:
+    needs: build-polymate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Prepare output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/polymate
+        git add .
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: polymate
+        path: repo-build/build-outputs/polymate
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build

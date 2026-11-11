@@ -6,15 +6,12 @@ jobs:
   build-sudoku-editor-plus:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v4
       with:
         path: main
-    - uses: actions/checkout@v4
-      with:
-        ref: build
-        path: repo-build
+        persist-credentials: false
     - name: Set up output directory
       run: |
         cd ${{ github.workspace }}/repo-build
@@ -26,7 +23,7 @@ jobs:
     - name: Setup build environment
       run: |
         # Install pnpm
-        npm install -g pnpm@10.18.2
+        npm install -g pnpm@12.18.0
 
         # Fix Rust version to 1.89.0
         rustup update
@@ -38,8 +35,8 @@ jobs:
         cd ${{ runner.temp }}
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install latest
-        ./emsdk activate latest
+        ./emsdk install releases-6.0.12-64bit
+        ./emsdk activate releases-6.0.12-64bit
     - name: Clone common repositories
       run: |
         git clone https://github.com/semiexp/cspuz_core.git --recursive ${{ runner.temp }}/cspuz_core
@@ -47,6 +44,11 @@ jobs:
     - name: Build Sudoku Editor Plus
       run: |
         source ${{ runner.temp }}/emsdk/emsdk_env.sh
+
+        # Print versions for debugging
+        cat "${{ runner.temp }}/emsdk/.emscripten"
+        node --version
+        emcc --version
 
         # Clone puzzle-webapp
         git clone https://github.com/semiexp/puzzle-webapp.git ${{ runner.temp }}/puzzle-webapp
@@ -74,9 +76,35 @@ jobs:
 
         pnpm --filter sudoku-editor run build-solver
         pnpm --filter sudoku-editor run build
-
-        # Copy build outputs
-        cp -r ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/dist/ ${{ github.workspace }}/repo-build/build-outputs/sudoku-editor
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sudoku-editor-plus
+        path: ${{ runner.temp }}/puzzle-webapp/packages/sudoku-editor/dist/
+        if-no-files-found: error
+  publish-sudoku-editor-plus:
+    needs: build-sudoku-editor-plus
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: build
+        path: repo-build
+    - name: Prepare output directory
+      run: |
+        cd ${{ github.workspace }}/repo-build
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        mkdir -p build-outputs
+        rm -rf build-outputs/sudoku-editor-plus
+        git add .
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: sudoku-editor-plus
+        path: repo-build/build-outputs/sudoku-editor-plus
     - name: Commit
       run: |
         cd ${{ github.workspace }}/repo-build
